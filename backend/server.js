@@ -27,23 +27,24 @@ async function initDb() {
     await db.query(`
       CREATE TABLE IF NOT EXISTS games (
         id SERIAL PRIMARY KEY,
-        winner VARCHAR(1),
-        moves INT
-      );
+        winner VARCHAR(1) NULL,
+        moves INTEGER DEFAULT 0
+      )
     `);
 
-    // ✅ Create users table
+    // Create users table
     await db.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL
-      );
+      )
     `);
 
     console.log('✅ Database initialized');
   } catch (err) {
     console.error('❌ Failed to initialize database:', err);
+    throw err; // Re-throw to handle it in the server startup
   }
 }
 
@@ -74,18 +75,11 @@ app.get('/protected', (req, res) => {
   }
 });
 
-// ----------------------------
-// ✅ END ROUTES
-
-// Start server after DB init
-async function initDb() {
-  await db.query(`CREATE TABLE IF NOT EXISTS users (...);`);
-  await db.query(`CREATE TABLE IF NOT EXISTS games (...);`);
-  console.log('✅ Database initialized');
-}
-
 initDb().then(() => {
   app.listen(8000, () => {
     console.log('🚀 Server running on http://localhost:8000');
   });
+}).catch(err => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
 });
